@@ -19,8 +19,9 @@ public class Stream {
 
 		readin();
 		//check();
-
-
+		for(int i =0;i<sats.size();i++){
+			System.out.println(sats.get(i).getId());
+		}
 	}
 
 	public void readin(){
@@ -68,7 +69,11 @@ public class Stream {
 
 
 					String gsv[] = sCurrentLine.toString().split(",");
-				//	System.out.println(sCurrentLine);
+					for(int i =0;i<gsv.length;i++){
+
+						//System.out.println(gsv[i]+" "+ i);			
+
+					}
 
 
 
@@ -97,9 +102,26 @@ public class Stream {
 						}
 					}
 
+					for (int i =0;i<sats.size();i++){
+
+						int curr = sats.get(i).getId();
+						boolean contains = false;
+						for(int j =3;j<gsa.length -3;j++){
+							if(!gsa[j].isEmpty()){
+								int compare = Integer.parseInt(gsa[j]);
+								if(compare == curr){
+									contains = true;
+								}
+
+							}
+						}
+						if(!contains){
+							sats.remove(i);
+						}
+					}
+
 
 				}
-
 
 			}
 
