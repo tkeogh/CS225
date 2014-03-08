@@ -11,7 +11,8 @@ public class Stream {
 	private ArrayList<GGA> ggas;
 	private ArrayList<Satellite> sats;
 	private ArrayList<Integer> satids;
-	private int failed = 0;
+	private Stream2 stream2;
+	private int lasttime;
 
 
 
@@ -20,6 +21,7 @@ public class Stream {
 		ggas = new ArrayList<GGA>();	
 		sats = new ArrayList<Satellite>();
 		satids = new ArrayList<Integer>();
+		stream2 = new Stream2();
 
 		readin();
 		// check();
@@ -28,7 +30,7 @@ public class Stream {
 
 	public void readin(){
 
-		File file = new File("gps_2.dat");		
+		File file = new File("gps_1.dat");		
 
 		BufferedReader br = null;
 
@@ -65,21 +67,20 @@ public class Stream {
 
 						ggas.add(newGGA);
 						System.out.println("----------WOOOOOOH YEAH ADDED   " + ggas.size() + " ---------");
-						for(int l =0;l<sats.size();l++){
-							//System.out.println("Using Satellite "+ sats.get(l).getId() + " Logged SNR : "+ sats.get(l).getSnr());
-
-						}
+						
 					}
 					else{
 						System.out.println("================FAILED HERE ======================");
-						for(int l =0;l<sats.size();l++){
-							System.out.println("Using Satellite "+ sats.get(l).getId() + " Logged SNR : "+ sats.get(l).getSnr());
-
-						}
-						failed++;
-						System.out.println(failed);
+						System.out.println("-----Attempting to pull from other stream -----");
+						int time = Math.round(Float.parseFloat(p[1])); //Second stream does not use .0000 like first receiver.
+						GGA test = new GGA();
+						test = stream2.searchStream(time);
+						
+						if(test != null){
+							ggas.add(test);
+							System.out.println("@@@@@@@@@ Added salvaged GGA data. @@@@@@@@@");
+						}			
 					}
-
 				}
 				else if(p[0].equalsIgnoreCase("$GPGSV")){
 
@@ -87,7 +88,7 @@ public class Stream {
 					String gsv[] = sCurrentLine.toString().split(",");
 					String[] finalone = gsv[gsv.length-1].toString().split("\\*");
 					gsv[gsv.length-1] = finalone[0];        //removes checksum so just the satellite snr left.
-					
+
 					int expectedsats   = 0;
 					int lineno = Integer.parseInt(gsv[2]);
 					int satelliteno = Integer.parseInt(gsv[3]);
@@ -103,7 +104,7 @@ public class Stream {
 						int position = 4 *(i+1);
 						satids.add(Integer.parseInt(gsv[position]));
 					}
-					
+
 					for(int i =0;i<satids.size();i++){
 						int currentsat = satids.get(i);
 						for(int j =0;j<sats.size();j++){
@@ -113,12 +114,12 @@ public class Stream {
 								int snr = Integer.parseInt(gsv[snrposition]);
 								sats.get(j).setSnr(snr);
 							}
-							
-						
+
+
 						}
-						
+
 					}
-					
+
 
 					/*first = Integer.parseInt(gsv[4]);
 					second = Integer.parseInt(gsv[8]);
