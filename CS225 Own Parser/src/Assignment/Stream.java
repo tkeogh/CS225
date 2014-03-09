@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class Stream {
@@ -12,19 +13,24 @@ public class Stream {
 	private ArrayList<Satellite> sats;
 	private ArrayList<Integer> satids;
 	private Stream2 stream2;
+	private gpxwriter gpx;
 	private int lasttime;
+	private double offset;
 
 
 
 	public Stream(){
 
+
+
 		ggas = new ArrayList<GGA>();	
 		sats = new ArrayList<Satellite>();
 		satids = new ArrayList<Integer>();
 		stream2 = new Stream2();
+		gpx = new gpxwriter();
 
 		readin();
-		// check();
+		writeFile();
 
 	}
 
@@ -48,12 +54,32 @@ public class Stream {
 				if(p[0].equalsIgnoreCase("$GPGGA")){  //Finds a GGA line used for co ordinates
 
 
+					int currtime = Math.round(Float.parseFloat(p[1]));
+
+					if(currtime - lasttime > 1){
+
+						System.out.println("curr time : " + currtime +" Lasttime : " + lasttime);
+						System.out.println("SECOND MISSING LOOKING IN SECOND STREAM");
+						System.out.println("SEARCHING FOR " + (lasttime+1));
+						GGA returned = stream2.searchStream(lasttime+1);
+						if(returned != null){
+							ggas.add(returned);
+							lasttime = (int) returned.getTime();
+						}
+						else{
+							System.out.println("No match found: Possibly due to last recorded time being just under minute.");
+						}
+
+
+					}
+
+
+
 					int pass = countReliable();
 
 					if(pass>=3){
 
 						GGA newGGA = new GGA();
-
 						newGGA.setTime(Double.parseDouble(p[1]));
 						newGGA.setLat(Double.parseDouble(p[2]));
 						newGGA.setNS(p[3]);
@@ -64,19 +90,40 @@ public class Stream {
 						newGGA.setPrecision(Double.parseDouble(p[8]));
 						newGGA.setAltitude(Double.parseDouble(p[9]));
 						newGGA.setSeperation(Double.parseDouble(p[11]));
-
 						ggas.add(newGGA);
 						System.out.println("----------WOOOOOOH YEAH ADDED   " + ggas.size() + " ---------");
-						
+						lasttime = (int) Math.round(newGGA.getTime());
+
+						GGA matched = stream2.searchStream(lasttime);
+						if(matched != null){  //find matching stream for offset.
+							System.out.println("MATCHED TIME = : " + Math.round(matched.getTime()));
+
+							offset = newGGA.getLat() / matched.getLat();
+							System.out.println("NEW OFFSET IS : " + offset);
+						}
+
+
+
 					}
 					else{
 						System.out.println("================FAILED HERE ======================");
 						System.out.println("-----Attempting to pull from other stream -----");
 						int time = Math.round(Float.parseFloat(p[1])); //Second stream does not use .0000 like first receiver.
+						lasttime = time;
 						GGA test = new GGA();
 						test = stream2.searchStream(time);
-						
-						if(test != null){
+
+						if(test != null){		
+							DecimalFormat df = new DecimalFormat("#.0000");
+
+							double newlat = test.getLat() * offset;
+							double newlon = test.getLon()  *offset;
+							System.out.println("OLD LAT: "+ test.getLat() + " OLD LON : " +test.getLon());
+							double formatlat = Double.parseDouble(df.format(newlat));
+							double formatlon = Double.parseDouble(df.format(newlon));
+							System.out.println("NEW LAT: " +formatlat + " NEW LON : " + formatlon);
+							test.setLon(formatlon);
+							test.setLat(formatlat);
 							ggas.add(test);
 							System.out.println("@@@@@@@@@ Added salvaged GGA data. @@@@@@@@@");
 						}			
@@ -119,46 +166,6 @@ public class Stream {
 						}
 
 					}
-
-
-					/*first = Integer.parseInt(gsv[4]);
-					second = Integer.parseInt(gsv[8]);
-					third = Integer.parseInt(gsv[12]);
-					fourth = Integer.parseInt(gsv[16]);
-
-
-					for(int i =0;i<sats.size();i++){
-
-						int curr = sats.get(i).getId();
-
-						if(curr == first){
-							if(!gsv[7].isEmpty()){
-								sats.get(i).setSnr(Integer.parseInt(gsv[7]));
-								//	System.out.println("Satellite " + curr + " set to  " + gsv[7]);
-							}
-						}
-						if(curr == second){
-							if(!gsv[11].isEmpty()){
-								sats.get(i).setSnr(Integer.parseInt(gsv[11]));									
-							}
-						}
-						if(curr == third){
-							if(!gsv[15].isEmpty()){
-								sats.get(i).setSnr(Integer.parseInt(gsv[15]));							
-							}
-						}
-						if(curr == fourth){
-							if(!finalone[0].isEmpty()){
-								sats.get(i).setSnr(Integer.parseInt(finalone[0]));
-							}
-						}
-
-					}*/
-
-
-
-
-
 
 				}
 				else if(p[0].equalsIgnoreCase("$GPGSA")){
@@ -252,6 +259,12 @@ public class Stream {
 		}
 
 		return reliable;
+	}
+
+	public void writeFile(){
+
+		gpx.writeGPXfile(ggas);
+
 	}
 
 }
