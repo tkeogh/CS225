@@ -3,7 +3,7 @@ package Assignment;
 public class Satellite {
 	
 	private int id;
-	private int snr;
+	private int snr;  //simple class to describe satellites and their variables.
 	
 	public int getId() {
 		return id;

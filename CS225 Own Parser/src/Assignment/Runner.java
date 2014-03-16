@@ -5,7 +5,7 @@ public class Runner {
 	public static void main (String[] args){
 		
 		
-		new Stream();
+		new Stream();  //GO!
 	
 		
 	}

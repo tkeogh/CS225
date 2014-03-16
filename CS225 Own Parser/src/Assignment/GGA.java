@@ -2,7 +2,7 @@ package Assignment;
 
 public class GGA {
 	
-	private double lat;
+	private double lat;   //Class for GGA, all fields added but not used, possible use in future but code in place now.
 	private String NS;
 	private double lon;
 	private String EW;

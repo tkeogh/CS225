@@ -25,21 +25,24 @@ public class gpxwriter {
 			FileWriter writer = new FileWriter(file);
 			
 			writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>");
-			writer.append("\n<gpx version=\"1.0\">");
-			writer.append("\n<name>CS225 Assignment</name>");
+			writer.append("<gpx version=\"1.0\">");  //add standard xml tags
+			writer.append("<name>CS225 Assignment</name>");
 			
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"); //get date
 			
-			writer.append("\n<trkseg>");
+			writer.append("<trk>");
+			writer.append("<trkseg>");
 			
 			for(int i =0;i<ggas.size();i++){
-				writer.append("\n<trkpt lat=\"" + ggas.get(i).getLat() + "\" lon =\"" + ggas.get(i).getLon() + "\"><time>" + "</time></trkpt>");
-			}
+				writer.append("<trkpt lat=\"" + ggas.get(i).getLat() + "\" lon =\"" + ggas.get(i).getLon() + "\"></trkpt>");
+				writer.append("<ele>" + ggas.get(i).getAltitude() + "</ele>");
+				
+			} //write all gpx info down.
 			
-			writer.append("\n</trkseg></gpx>");
+			writer.append("</trkseg></trk></gpx>");
 			
 			writer.close();
-			
+			// <time>" + "</time>
 			
 			
 			
